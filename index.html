@@ -14,17 +14,17 @@
     <section class="app vue-app">
         <h1>VUE</h1>
         <h2>How much will?</h2>
-        <p>{{counter}} + {{step}}</p>
+        <p>{{counter}} {{step < 0 ? '-' : '+'}} {{Math.abs(step)}}</p>
         <p><strong>Result: {{sum}}</strong></p>
         <div class="math">
             Counter:
-            <button class="button minus" v-on:click="decrementCounterHandler">-1</button>
-            <button class="button plus" v-on:click="incrementCounterHandler">+1</button>
+            <button class="button minus" data-name="counter" v-on:click="clickHandler($event)">-1</button>
+            <button class="button plus" data-name="counter" v-on:click="clickHandler($event)">+1</button>
         </div>
         <div class="math">
             Step:
-            <button class="button minus">-2</button>
-            <button class="button plus">+2</button>
+            <button class="button minus" data-name="step" v-on:click="clickHandler($event)">-2</button>
+            <button class="button plus" data-name="step" v-on:click="clickHandler($event)">+2</button>
         </div>
     </section>
     <hr>
@@ -35,13 +35,13 @@
         <p><strong>Result: <span class="sum"></span></strong></p>
         <div class="math">
             Counter:
-            <button class="button minus">-1</button>
-            <button class="button plus">+1</button>
+            <button class="button minus" data-name="counter">-1</button>
+            <button class="button plus" data-name="counter">+1</button>
         </div>
         <div class="math">
             Step:
-            <button class="button minus">-2</button>
-            <button class="button plus">+2</button>
+            <button class="button minus" data-name="step">-2</button>
+            <button class="button plus" data-name="step">+2</button>
         </div>
     </section>
     <script>
@@ -52,19 +52,21 @@
                 step: 2
             },
             methods: {
-                incrementCounterHandler() {},
-                decrementCounterHandler() {}
-                //...
+                clickHandler({ target: { innerText, dataset } }) {
+                    this[dataset.name] += parseInt(innerText);
+                }
             },
             computed: {
-                sum() {}
+                sum() {
+                    return this.counter + this.step;
+                }
             }
         })
     </script>
     <script>
         const counterEl = document.querySelector('.js-app .counter');
-        const buttonElMinus = document.querySelector('.js-app .minus');
-        const buttonElPlus = document.querySelector('.js-app .plus');
+        const buttonElMinus = document.querySelectorAll('.js-app .minus');
+        const buttonElPlus = document.querySelectorAll('.js-app .plus');
         const sumEl = document.querySelector('.js-app .sum');
         const stepEl = document.querySelector('.js-app .step');
 
@@ -73,23 +75,30 @@
             step: 2
         };
 
-        const incrementCounterHandler = function () {};
-        const decrementCounterHandler = function () {};
-        //...
-        const getSum = function () {};
+        const clickHandler = function ({ target: {innerText, dataset} }) {
+            data[dataset.name] += parseInt(innerText);
+            if (dataset.name === 'step') {
+                stepEl.textContent = data[dataset.name];
+            } else {
+                counterEl.textContent = data[dataset.name];
+            }
+        };
+        const getSum = function () {
+            const newCounter = data.counter + data.step;
+            sumEl.textContent = newCounter;
+        };
 
         const queue = [getSum];
 
         Object.keys(data).forEach(key => {
             let value = data[key]; // data.counter, data.counter1, data.counter2
+            console.log(value)
             Object.defineProperty(data, key, {
                 get: function () {
-                    console.log('get');
-                    // queue.push();
+                    // queue.push(getSum);
                     return value;
                 },
                 set: function (newValue) {
-                    console.log('set');
                     value = newValue;
                     queue.forEach(fn => fn());
                 }
@@ -99,8 +108,8 @@
         counterEl.textContent = data.counter;
         stepEl.textContent = data.step;
         getSum();
-        buttonElMinus.addEventListener('click', decrementCounterHandler);
-        buttonElPlus.addEventListener('click', incrementCounterHandler);
+        buttonElMinus.forEach(button => button.addEventListener('click', clickHandler));
+        buttonElPlus.forEach(button => button.addEventListener('click', clickHandler));
     </script>
 </body>
 
